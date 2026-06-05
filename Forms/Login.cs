@@ -1,16 +1,7 @@
 ﻿using P7_Travel_Planner_Frontend.DTOs;
 using P7_Travel_Planner_Frontend.Helpers;
 using P7_Travel_Planner_Frontend.Services;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Net.Http.Json;
 
 namespace P7_Travel_Planner_Frontend.Forms
@@ -71,10 +62,14 @@ namespace P7_Travel_Planner_Frontend.Forms
 
                 MessageBox.Show("Login Successful!");
 
-                //Dashboard dashboard = new Dashboard();
-                //dashboard.Show();
-
                 this.Hide();
+
+                Dashboard dashboard = new Dashboard();
+                dashboard.ShowDialog();
+
+                this.Show();
+
+
             }
             else
             {

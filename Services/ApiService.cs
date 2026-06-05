@@ -1,4 +1,5 @@
-﻿using System;
+﻿using P7_Travel_Planner_Frontend.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -18,6 +19,13 @@ namespace P7_Travel_Planner_Frontend.Services
             {
                 BaseAddress = new Uri("http://localhost:5030/api/")
             };
+            if (!string.IsNullOrEmpty(SessionManager.Token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue(
+                        "Bearer",
+                        SessionManager.Token);
+            }
         }
 
         public void SetToken(string token)
