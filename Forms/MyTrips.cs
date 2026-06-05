@@ -96,8 +96,8 @@ namespace P7_Travel_Planner_Frontend.Forms
                 return;
             }
 
-            DateTime startDate = DateTime.Parse(cmbStartDate.Value.ToString());
-            DateTime endDate = DateTime.Parse(cmbEndDate.Value.ToString());
+            DateTime startDate = DateTime.Parse(cmbStartDate.Text.ToString());
+            DateTime endDate = DateTime.Parse(cmbEndDate.Text.ToString());
 
             var newTrip = new TripDto
             {
