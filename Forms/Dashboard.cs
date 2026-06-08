@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using P7_Travel_Planner_Frontend.Helpers;
 
 namespace P7_Travel_Planner_Frontend.Forms
 {
@@ -40,6 +41,11 @@ namespace P7_Travel_Planner_Frontend.Forms
         private void btnLogout_Click(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private void Dashboard_Load(object sender, EventArgs e)
+        {
+            lblUsername.Text = $"Welcome, {SessionManager.Username}!";
         }
     }
 }

@@ -16,6 +16,7 @@ namespace P7_Travel_Planner_Frontend.Forms
     public partial class MyTrips : Form
     {
         private readonly ApiService _apiService;
+        private int? _editingTripId = null;
         public MyTrips()
         {
             InitializeComponent();
@@ -23,67 +24,103 @@ namespace P7_Travel_Planner_Frontend.Forms
         }
         private async void MyTripsForm_Load(object sender, EventArgs e)
         {
-             LoadStatuses();
-            await LoadDestinations();   
-            await LoadTrips();
+            try
+            {
+                LoadStatuses();
+                ConfigureGrid();
+                await LoadDestinations();
+                await LoadTrips();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private void ConfigureGrid()
+        {
+            if (dataGridViewTrips.Columns.Count > 0)
+                return;
+
+            DataGridViewButtonColumn viewBtn = new()
+            {
+                Name = "View",
+                HeaderText = "View",
+                Text = "Details",
+                UseColumnTextForButtonValue = true
+            };
+
+            DataGridViewButtonColumn editBtn = new()
+            {
+                Name = "Edit",
+                HeaderText = "Edit",
+                Text = "Edit",
+                UseColumnTextForButtonValue = true
+            };
+
+            DataGridViewButtonColumn deleteBtn = new()
+            {
+                Name = "Delete",
+                HeaderText = "Delete",
+                Text = "Delete",
+                UseColumnTextForButtonValue = true
+            };
+
+            dataGridViewTrips.Columns.Add(viewBtn);
+            dataGridViewTrips.Columns.Add(editBtn);
+            dataGridViewTrips.Columns.Add(deleteBtn);
+
         }
         private async Task LoadTrips()
         {
-            var trips =
-                await _apiService.GetAsync<List<TripDto>>("trips");
-
-            dataGridViewTrips.DataSource = trips;
-
-            dataGridViewTrips.AutoSizeColumnsMode =
-                DataGridViewAutoSizeColumnsMode.Fill;
-
-            if (!dataGridViewTrips.Columns.Contains("View"))
+            try
             {
-                DataGridViewButtonColumn viewBtn = new DataGridViewButtonColumn();
-                viewBtn.Name = "View";
-                viewBtn.HeaderText = "View";
-                viewBtn.Text = "Details";
-                viewBtn.UseColumnTextForButtonValue = true;
-                dataGridViewTrips.Columns.Add(viewBtn);
+                var trips =
+                    await _apiService.GetAsync<List<TripDto>>("trips") ?? new List<TripDto>();
 
-                DataGridViewButtonColumn editBtn = new DataGridViewButtonColumn();
-                editBtn.Name = "Edit";
-                editBtn.HeaderText = "Edit";
-                editBtn.Text = "Edit";
-                editBtn.UseColumnTextForButtonValue = true;
-                dataGridViewTrips.Columns.Add(editBtn);
+                dataGridViewTrips.DataSource = null;
+                dataGridViewTrips.DataSource = trips;
 
-                DataGridViewButtonColumn deleteBtn = new DataGridViewButtonColumn();
-                deleteBtn.Name = "Delete";
-                deleteBtn.HeaderText = "Delete";
-                deleteBtn.Text = "Delete";
-                deleteBtn.UseColumnTextForButtonValue = true;
-                dataGridViewTrips.Columns.Add(deleteBtn);
+                dataGridViewTrips.AutoSizeColumnsMode =
+                    DataGridViewAutoSizeColumnsMode.Fill;
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load trips.\n{ex.Message}", "Error");
             }
 
         }
         private async Task LoadDestinations()
         {
-            var response =
-                await _apiService.GetAsync<PagedResponseDto<DestinationDto>>(
-                    "destinations?page=1&pageSize=100");
+            try
+            {
+                var response =
+                    await _apiService.GetAsync<PagedResponseDto<DestinationDto>>(
+                        "destinations?page=1&pageSize=100");
 
-            var destinations = response?.Data ?? new List<DestinationDto>();
+                var destinations = response?.Data ?? new List<DestinationDto>() ?? new List<DestinationDto>();
 
-            cmbDestination.DataSource = destinations;
-            cmbDestination.DisplayMember = "Name";
-            cmbDestination.ValueMember = "Id";
-
-            cmbDestination.SelectedIndex = -1;
+                cmbDestination.DataSource = destinations;
+                cmbDestination.DisplayMember = "Name";
+                cmbDestination.ValueMember = "Id";
+                cmbDestination.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load destinations.\n{ex.Message}", "Error");
+            }
         }
         private void LoadStatuses()
         {
             cmbStatus.Items.Clear();
 
-            cmbStatus.Items.Add("Planned");
-            cmbStatus.Items.Add("In Progress");
-            cmbStatus.Items.Add("Completed");
-            cmbStatus.Items.Add("Cancelled");
+            cmbStatus.Items.AddRange(new[]
+            {
+                "Planned",
+                "In Progress",
+                "Completed",
+                "Cancelled"
+            });
 
             cmbStatus.SelectedIndex = -1;
         }
@@ -91,78 +128,98 @@ namespace P7_Travel_Planner_Frontend.Forms
         {
             if (!ValidateInputs())
             {
-                MessageBox.Show("Please fill in all fields.", "Input Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            DateTime startDate = DateTime.Parse(cmbStartDate.Text.ToString());
-            DateTime endDate = DateTime.Parse(cmbEndDate.Text.ToString());
-
-            var newTrip = new TripDto
+            try
             {
-                Title = txtTitle.Text.Trim(),
-                Destination = cmbDestination.Text.Trim(),
-                StartDate = startDate,
-                EndDate = endDate,
-                Status = cmbStatus.SelectedIndex
-            };
 
-            await _apiService.PostAsync("trips", newTrip);
+                var trip = new TripDto
+                {
+                    Id = _editingTripId ?? 0,
+                    Title = txtTitle.Text.Trim(),
+                    DestinationId = (int)cmbDestination.SelectedValue,
+                    Destination = cmbDestination.Text.Trim(),
+                    StartDate = StartDate.Value,
+                    EndDate = EndDate.Value,
+                    Status = cmbStatus.SelectedIndex
+                };
+                if (_editingTripId.HasValue)
+                {
+                    await _apiService.PutAsync($"trips/{_editingTripId}", trip);
+                    MessageBox.Show("Trip updated successfully.", "Success");
+                }
+                else
+                {
+                    var response = await _apiService.PostAsync("trips", trip);
 
-            MessageBox.Show("Trip created successfully!", "Success",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    var error = await response.Content.ReadAsStringAsync();
 
-            await LoadTrips();
+                    MessageBox.Show(error);
 
-            txtTitle.Clear();
-            cmbDestination.SelectedIndex = -1;
-            cmbStartDate.SelectedIndex = -1;
-            cmbEndDate.SelectedIndex = -1;
-            cmbStatus.SelectedIndex = -1;
+                    MessageBox.Show("Trip created successfully!", "Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+
+                ResetForm();
+                await LoadTrips();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
-
         bool ValidateInputs()
         {
-            if (string.IsNullOrWhiteSpace(txtTitle.Text) ||
-                string.IsNullOrWhiteSpace(cmbDestination.Text) ||
-                string.IsNullOrWhiteSpace(cmbStartDate.Text) ||
-                string.IsNullOrWhiteSpace(cmbEndDate.Text) ||
-                string.IsNullOrWhiteSpace(cmbStatus.Text))
+            if (string.IsNullOrWhiteSpace(txtTitle.Text))
             {
+                MessageBox.Show("Enter a title.");
                 return false;
             }
+
             if (txtTitle.Text.Length < 5 || txtTitle.Text.Length > 100)
             {
                 MessageBox.Show("Title must be between 5 and 100 characters.", "Input Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
-            if (!DateTime.TryParse(cmbStartDate.Text, out DateTime startDate) ||
-        !DateTime.TryParse(cmbEndDate.Text, out DateTime endDate))
+            if (cmbDestination.SelectedIndex == -1)
             {
-                MessageBox.Show(
-                    "Please select valid dates.",
-                    "Input Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-
+                MessageBox.Show("Select a destination.");
+                return false;
+            }
+            if (cmbStatus.SelectedIndex == -1)
+            {
+                MessageBox.Show("Select a status.");
                 return false;
             }
 
-            if (startDate > endDate)
+            if (StartDate.Value.Date >= EndDate.Value.Date)
             {
-                MessageBox.Show(
-                    "End date must be after start date.",
-                    "Input Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-
+                MessageBox.Show("End date must be after start date.");
                 return false;
             }
 
             return true;
         }
+
+        private void ResetForm()
+        {
+            txtTitle.Clear();
+
+            cmbDestination.SelectedIndex = -1;
+            cmbStatus.SelectedIndex = -1;
+
+            StartDate.Value = DateTime.Today;
+            EndDate.Value = DateTime.Today;
+
+            _editingTripId = null;
+
+            btnCreateTrip.Text = "Create Trip";
+
+        }
+
 
         private async void dataGridViewTrips_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -187,11 +244,13 @@ namespace P7_Travel_Planner_Frontend.Forms
             }
             else if (columnName == "Edit")
             {
+                _editingTripId = trip.Id;
                 txtTitle.Text = trip.Title;
-                cmbDestination.Text = trip.Destination;
-                cmbStartDate.Text = trip.StartDate.ToShortDateString();
-                cmbEndDate.Text = trip.EndDate.ToShortDateString();
-                cmbStatus.Text = trip.Status.ToString();
+                cmbDestination.SelectedIndex = cmbDestination.FindStringExact(trip.Destination);
+                cmbStatus.SelectedIndex = trip.Status;
+                StartDate.Value = trip.StartDate;
+                EndDate.Value = trip.EndDate;
+                btnCreateTrip.Text = "Update Trip";
 
                 // Store trip.Id somewhere for Update operation
             }
@@ -205,13 +264,22 @@ namespace P7_Travel_Planner_Frontend.Forms
 
                 if (result == DialogResult.Yes)
                 {
-                    await _apiService.DeleteAsync($"trips/{trip.Id}");
-                    await LoadTrips();
+                    try
+                    {
 
-                    MessageBox.Show("Trip deleted successfully.");
+
+                        await _apiService.DeleteAsync($"trips/{trip.Id}");
+                        await LoadTrips();
+
+                        MessageBox.Show("Trip deleted successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to delete trip.\n{ex.Message}", "Error");
+                    }
                 }
-            }
 
+            }
         }
     }
 }

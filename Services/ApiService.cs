@@ -41,11 +41,16 @@ namespace P7_Travel_Planner_Frontend.Services
         }
 
         // POST
+
         public async Task<HttpResponseMessage> PostAsync<T>(
-            string endpoint,
-            T data)
+    string endpoint,
+    T data)
         {
-            return await _httpClient.PostAsJsonAsync(endpoint, data);
+            var response = await _httpClient.PostAsJsonAsync(endpoint, data);
+
+            response.EnsureSuccessStatusCode();
+
+            return response;
         }
 
         // PUT

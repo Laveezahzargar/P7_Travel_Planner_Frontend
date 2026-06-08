@@ -18,7 +18,7 @@ namespace P7_Travel_Planner_Frontend.Forms
         {
             var response =
                 await _apiService.GetAsync<PagedResponseDto<DestinationDto>>(
-                    "destinations?page=2&pageSize=5");
+                    "destinations?page=1&pageSize=100");
 
             _destinations = response?.Data ?? new List<DestinationDto>();
 
@@ -46,7 +46,7 @@ namespace P7_Travel_Planner_Frontend.Forms
 
         }
 
-        private void btnSearch_Click(object sender, EventArgs e)
+        private async void btnSearch_Click(object sender, EventArgs e)
         {
             string keyword = txtSearch.Text.Trim().ToLower();
 
@@ -57,17 +57,24 @@ namespace P7_Travel_Planner_Frontend.Forms
                 return;
             }
 
-            var results = _destinations
-            .Where(d =>
-            d.Id.ToString().Contains(keyword) ||
-            (d.Name ?? "").ToLower().Contains(keyword) ||
-            (d.Country ?? "").ToLower().Contains(keyword))
-            .ToList();
+            try
+            {
 
-            dataGridViewDestinations.DataSource = null;
-            dataGridViewDestinations.DataSource = results;
+                var response =
+           await _apiService.GetAsync<PagedResponseDto<DestinationDto>>(
+               $"destinations?search={keyword}&page=1&pageSize=100");
 
-            AddViewButton();
+                var results = response?.Data ?? new List<DestinationDto>();
+
+                dataGridViewDestinations.DataSource = null;
+                dataGridViewDestinations.DataSource = results;
+
+                AddViewButton();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Search failed.\n{ex.Message}", "Error");
+            }
         }
 
         private void txtSearch_KeyDown(object sender, KeyEventArgs e)
@@ -99,7 +106,7 @@ namespace P7_Travel_Planner_Frontend.Forms
                     .DataBoundItem;
 
                 DestinationDetails details =
-                 new DestinationDetails(destination);
+                 new DestinationDetails(destination,this._apiService);
 
                 details.ShowDialog();
             }

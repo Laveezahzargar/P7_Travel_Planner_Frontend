@@ -57,6 +57,7 @@ namespace P7_Travel_Planner_Frontend.Forms
                 SessionManager.Token = result!.Token;
                 SessionManager.UserId = result.Id;
                 SessionManager.Role = result.Role.ToString();
+                SessionManager.Username = result.Username;
 
                 _apiService.SetToken(result.Token);
 

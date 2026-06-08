@@ -43,8 +43,8 @@
             label10 = new Label();
             cmbStatus = new ComboBox();
             cmbDestination = new ComboBox();
-            cmbStartDate = new ComboBox();
-            cmbEndDate = new ComboBox();
+            StartDate = new DateTimePicker();
+            EndDate = new DateTimePicker();
             ((System.ComponentModel.ISupportInitialize)dataGridViewTrips).BeginInit();
             SuspendLayout();
             // 
@@ -181,29 +181,27 @@
             cmbDestination.Size = new Size(697, 28);
             cmbDestination.TabIndex = 17;
             // 
-            // cmbStartDate
+            // StartDate
             // 
-            cmbStartDate.FormattingEnabled = true;
-            cmbStartDate.Location = new Point(523, 131);
-            cmbStartDate.Name = "cmbStartDate";
-            cmbStartDate.Size = new Size(697, 28);
-            cmbStartDate.TabIndex = 18;
+            StartDate.Location = new Point(523, 131);
+            StartDate.Name = "StartDate";
+            StartDate.Size = new Size(697, 27);
+            StartDate.TabIndex = 18;
             // 
-            // cmbEndDate
+            // EndDate
             // 
-            cmbEndDate.FormattingEnabled = true;
-            cmbEndDate.Location = new Point(523, 171);
-            cmbEndDate.Name = "cmbEndDate";
-            cmbEndDate.Size = new Size(697, 28);
-            cmbEndDate.TabIndex = 19;
+            EndDate.Location = new Point(523, 172);
+            EndDate.Name = "EndDate";
+            EndDate.Size = new Size(697, 27);
+            EndDate.TabIndex = 19;
             // 
             // MyTrips
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1413, 742);
-            Controls.Add(cmbEndDate);
-            Controls.Add(cmbStartDate);
+            Controls.Add(EndDate);
+            Controls.Add(StartDate);
             Controls.Add(cmbDestination);
             Controls.Add(cmbStatus);
             Controls.Add(label10);
@@ -246,7 +244,7 @@
         private Label label10;
         private ComboBox cmbStatus;
         private ComboBox cmbDestination;
-        private ComboBox cmbStartDate;
-        private ComboBox cmbEndDate;
+        private DateTimePicker StartDate;
+        private DateTimePicker EndDate;
     }
 }

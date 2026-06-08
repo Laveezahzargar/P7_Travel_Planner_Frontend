@@ -28,30 +28,20 @@
         /// </summary>
         private void InitializeComponent()
         {
-            label1 = new Label();
-            label2 = new Label();
+            lblUsername = new Label();
             btnViewDestinations = new Button();
             btnMyTrips = new Button();
             btnLogout = new Button();
             SuspendLayout();
             // 
-            // label1
+            // lblUsername
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(605, 115);
-            label1.Name = "label1";
-            label1.Size = new Size(71, 20);
-            label1.TabIndex = 0;
-            label1.Text = "Welcome";
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(682, 115);
-            label2.Name = "label2";
-            label2.Size = new Size(50, 20);
-            label2.TabIndex = 1;
-            label2.Text = "label2";
+            lblUsername.AutoSize = true;
+            lblUsername.Location = new Point(614, 117);
+            lblUsername.Name = "lblUsername";
+            lblUsername.Size = new Size(50, 20);
+            lblUsername.TabIndex = 1;
+            lblUsername.Text = "label2";
             // 
             // btnViewDestinations
             // 
@@ -91,18 +81,16 @@
             Controls.Add(btnLogout);
             Controls.Add(btnMyTrips);
             Controls.Add(btnViewDestinations);
-            Controls.Add(label2);
-            Controls.Add(label1);
+            Controls.Add(lblUsername);
             Name = "Dashboard";
             Text = "Dashboard";
+            Load += Dashboard_Load;
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-
-        private Label label1;
-        private Label label2;
+        private Label lblUsername;
         private Button btnViewDestinations;
         private Button btnMyTrips;
         private Button btnLogout;
