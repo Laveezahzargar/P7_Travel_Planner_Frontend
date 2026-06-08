@@ -242,6 +242,9 @@ namespace P7_Travel_Planner_Frontend.Forms
                     $"Status: {trip.Status}",
                     "Trip Details");
 
+                TripDetails tripDetails = new TripDetails(_apiService, trip.Id);
+                tripDetails.ShowDialog();
+
 
             }
             else if (columnName == "Edit")
