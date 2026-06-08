@@ -21,5 +21,9 @@ namespace P7_Travel_Planner_Frontend.DTOs
         public string Location { get; set; } = string.Empty;
 
         public string ImageUrl { get; set; } = string.Empty;
+
+        public double Latitude { get; set; }
+
+        public double Longitude { get; set; }
     }
 }

@@ -241,6 +241,8 @@ namespace P7_Travel_Planner_Frontend.Forms
                     $"End: {trip.EndDate:d}\n" +
                     $"Status: {trip.Status}",
                     "Trip Details");
+
+
             }
             else if (columnName == "Edit")
             {

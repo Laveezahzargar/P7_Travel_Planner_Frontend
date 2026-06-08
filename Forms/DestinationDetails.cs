@@ -31,23 +31,31 @@ namespace P7_Travel_Planner_Frontend.Forms
             if (e.RowIndex < 0)
                 return;
 
-            if (dataGridViewPlaces.Columns[e.ColumnIndex].Name == "View")
+            if (dataGridViewPlaces.Columns[e.ColumnIndex].Name == "View Weather")
             {
                 PlaceDto place =
                     (PlaceDto)dataGridViewPlaces
                     .Rows[e.RowIndex]
                     .DataBoundItem;
 
-                //PlaceDetails form =
-                //    new PlaceDetails(place);
+                if (place == null) return;
 
-                // form.ShowDialog();
+                Weather form =
+                    new Weather(new SelectedPlaceContext
+                    {
+                        DestinationId = _destinationId,
+                        DestinationName = lblName.Text,
+                        PlaceId = place.Id,
+                        PlaceName = place.Name,
+                        Latitude = place.Latitude,
+                        Longitude = place.Longitude
+                    },_apiservice);
+
+                form.ShowDialog();
             }
         }
         private async void DestinationDetails_Load(object sender, EventArgs e)
         {
-            await LoadPlaces();
-
             if (!dataGridViewPlaces.Columns.Contains("View Weather"))
             {
                 DataGridViewButtonColumn btn =
@@ -60,6 +68,8 @@ namespace P7_Travel_Planner_Frontend.Forms
 
                 dataGridViewPlaces.Columns.Add(btn);
             }
+
+            await LoadPlaces();            
         }
         async Task LoadPlaces()
         {
