@@ -48,6 +48,18 @@ namespace P7_Travel_Planner_Frontend.Forms
         }
         private void AddActionButtons()
         {
+            if (dataGridViewDays.Columns["Activities"] == null)
+            {
+                var activityBtn = new DataGridViewButtonColumn
+                {
+                    Name = "Activities",
+                    Text = "Activities",
+                    UseColumnTextForButtonValue = true
+                };
+
+                dataGridViewDays.Columns.Add(activityBtn);
+            }
+
             if (dataGridViewDays.Columns["Edit"] == null)
             {
                 var editBtn = new DataGridViewButtonColumn
@@ -72,6 +84,12 @@ namespace P7_Travel_Planner_Frontend.Forms
         }
         private async void btnAddDay_Click(object sender, EventArgs e)
         {
+            if(dtpDate.Value <  DateTime.Parse(lblStartDate.Text) || dtpDate.Value > DateTime.Parse(lblEndDate.Text))
+            {
+                MessageBox.Show("The date is outside the trip dates.", "Invalid Date", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             var day = new DayDto
             {
                 Id = _selectedDayId,
@@ -129,6 +147,12 @@ namespace P7_Travel_Planner_Frontend.Forms
                 numDayNumber.Value = day.DayNumber;
                 txtNotes.Text = day.Notes;
             }
+            else if (dataGridViewDays.Columns[e.ColumnIndex].Name == "Activities")
+            {
+                Activity activity = new Activity(_apiService, day.Id);
+
+                activity.ShowDialog();
+            }
             else if (dataGridViewDays.Columns[e.ColumnIndex].Name == "Delete")
             {
                 await _apiService.DeleteAsync($"days/{day.Id}");
@@ -138,8 +162,11 @@ namespace P7_Travel_Planner_Frontend.Forms
 
         private async void TripDetails_Load(object sender, EventArgs e)
         {
+           
             await LoadTripInfo();
             await LoadDays(_tripId);
+
+            dtpDate.Value = DateTime.Parse(lblStartDate.Text);
         }
     }
 }

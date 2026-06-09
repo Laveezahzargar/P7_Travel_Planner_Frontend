@@ -8,6 +8,7 @@ namespace P7_Travel_Planner_Frontend.DTOs
 {
         public class TripDto
         {
+
             public int Id { get; set; }
 
             public string Title { get; set; } = string.Empty;
