@@ -16,6 +16,18 @@ namespace P7_Travel_Planner_Frontend.Forms
 
             _apiService = apiService;
             _dayId = dayId;
+
+            dtpStart.Format = DateTimePickerFormat.Custom;
+            dtpStart.CustomFormat = "hh:mm tt";
+            dtpStart.ShowUpDown = true;
+
+            dtpEnd.Format = DateTimePickerFormat.Custom;
+            dtpEnd.CustomFormat = "hh:mm tt";
+            dtpEnd.ShowUpDown = true;
+
+            numCost.Minimum = 0;
+            numCost.Maximum = 100000;
+            numCost.DecimalPlaces = 2;
         }
 
         private async void ActivityForm_Load(
@@ -53,10 +65,40 @@ namespace P7_Travel_Planner_Frontend.Forms
 
             dataGridViewActivity.DataSource = activities;
 
+            dataGridViewActivity.Columns["StartTime"].DefaultCellStyle.Format = @"hh\:mm";
+            dataGridViewActivity.Columns["EndTime"].DefaultCellStyle.Format = @"hh\:mm";
+
             Log.Information(
                 "Loaded {Count} activities for DayId {DayId}",
                 activities?.Count ?? 0,
                 _dayId);
+
+            AddActionButtons();
+        }
+
+        private void AddActionButtons()
+        {
+            if (dataGridViewActivity.Columns["Edit"] == null)
+            {
+                dataGridViewActivity.Columns.Add(
+                    new DataGridViewButtonColumn
+                    {
+                        Name = "Edit",
+                        Text = "Edit",
+                        UseColumnTextForButtonValue = true
+                    });
+            }
+
+            if (dataGridViewActivity.Columns["Delete"] == null)
+            {
+                dataGridViewActivity.Columns.Add(
+                    new DataGridViewButtonColumn
+                    {
+                        Name = "Delete",
+                        Text = "Delete",
+                        UseColumnTextForButtonValue = true
+                    });
+            }
         }
 
         private async void btnAdd_Click(
@@ -96,14 +138,28 @@ namespace P7_Travel_Planner_Frontend.Forms
                     EndTime = dtpEnd.Value.TimeOfDay
                 };
 
-                await _apiService.PostAsync(
-                    $"days/{_dayId}/activities",
-                    activity);
+                if (_selectedActivityId == 0)
+                {
+                    await _apiService.PostAsync(
+                        $"days/{_dayId}/activities",
+                        activity);
 
-                Log.Information(
-                    "Activity added for DayId {DayId}. Name={ActivityName}",
-                    _dayId,
-                    activity.Name);
+                    Log.Information(
+                        "Activity created: {Name}",
+                        activity.Name);
+                }
+                else
+                {
+                    activity.Id = _selectedActivityId;
+
+                    await _apiService.PutAsync(
+                        $"activities/{_selectedActivityId}",
+                        activity);
+
+                    Log.Information(
+                        "Activity updated: {Id}",
+                        _selectedActivityId);
+                }
 
                 ClearForm();
 
@@ -160,9 +216,9 @@ namespace P7_Travel_Planner_Frontend.Forms
             }
         }
 
-        private void dataGridViewActivities_CellClick(
-            object sender,
-            DataGridViewCellEventArgs e)
+        private async void dataGridViewActivity_CellContentClick(
+    object sender,
+    DataGridViewCellEventArgs e)
         {
             try
             {
@@ -174,33 +230,50 @@ namespace P7_Travel_Planner_Frontend.Forms
                     .Rows[e.RowIndex]
                     .DataBoundItem;
 
-                _selectedActivityId = activity.Id;
+                string column =
+                    dataGridViewActivity.Columns[e.ColumnIndex].Name;
 
-                txtName.Text = activity.Name;
-                txtLocation.Text = activity.Location;
-                numCost.Value = activity.Cost;
+                if (column == "Edit")
+                {
+                    _selectedActivityId = activity.Id;
 
-                dtpStart.Value =
-                    DateTime.Today.Add(activity.StartTime);
+                    txtName.Text = activity.Name;
+                    txtLocation.Text = activity.Location;
+                    numCost.Value = activity.Cost;
 
-                dtpEnd.Value =
-                    DateTime.Today.Add(activity.EndTime);
+                    dtpStart.Value =
+                        DateTime.Today.Add(activity.StartTime);
 
-                Log.Information(
-                    "Selected ActivityId {ActivityId}",
-                    activity.Id);
+                    dtpEnd.Value =
+                        DateTime.Today.Add(activity.EndTime);
+
+                    btnAdd.Text = "Update";
+                }
+                else if (column == "Delete")
+                {
+                    var result = MessageBox.Show(
+                        "Delete this activity?",
+                        "Confirm",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+
+                    if (result != DialogResult.Yes)
+                        return;
+
+                    await _apiService.DeleteAsync(
+                        $"activities/{activity.Id}");
+
+                    await LoadActivities();
+
+                    Log.Information(
+                        "Activity deleted: {Id}",
+                        activity.Id);
+                }
             }
             catch (Exception ex)
             {
-                Log.Error(
-                    ex,
-                    "Failed to select activity");
-
-                MessageBox.Show(
-                    "Failed to load activity details.",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                Log.Error(ex,
+                    "Activity grid operation failed");
             }
         }
 
@@ -215,6 +288,8 @@ namespace P7_Travel_Planner_Frontend.Forms
             dtpEnd.Value = DateTime.Now;
 
             _selectedActivityId = 0;
+
+            btnAdd.Text = "Add Activity";
         }
     }
 }

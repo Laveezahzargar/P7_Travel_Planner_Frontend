@@ -84,7 +84,7 @@
             dataGridViewActivity.RowHeadersWidth = 51;
             dataGridViewActivity.Size = new Size(1115, 409);
             dataGridViewActivity.TabIndex = 3;
-            dataGridViewActivity.CellClick += dataGridViewActivities_CellClick;
+            dataGridViewActivity.CellContentClick += dataGridViewActivity_CellContentClick;
             // 
             // btnAdd
             // 
