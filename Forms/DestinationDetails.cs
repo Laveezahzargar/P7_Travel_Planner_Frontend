@@ -1,93 +1,139 @@
 ﻿using P7_Travel_Planner_Frontend.DTOs;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using P7_Travel_Planner_Frontend.Services;
+using Serilog;
 
 namespace P7_Travel_Planner_Frontend.Forms
 {
     public partial class DestinationDetails : Form
     {
-        private readonly ApiService _apiservice;
+        private readonly ApiService _apiService;
         private readonly int _destinationId;
-        public DestinationDetails(DestinationDto destination, ApiService apiservice)
+
+        public DestinationDetails(
+            DestinationDto destination,
+            ApiService apiService)
         {
             InitializeComponent();
 
             lblName.Text = destination.Name;
             lblCountry.Text = destination.Country;
             lblDescription.Text = destination.Description;
+
             _destinationId = destination.Id;
-            _apiservice = apiservice;
+            _apiService = apiService;
         }
-        private void dataGridViewPlaces_CellContentClick_1(object sender, DataGridViewCellEventArgs e)
+
+        private async void DestinationDetails_Load(
+            object sender,
+            EventArgs e)
         {
-            if (e.RowIndex < 0)
+            try
+            {
+                AddWeatherButton();
+
+                await LoadPlaces();
+
+                Log.Information(
+                    "Destination details loaded. DestinationId={DestinationId}",
+                    _destinationId);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(
+                    ex,
+                    "Failed to load destination details. DestinationId={DestinationId}",
+                    _destinationId);
+
+                MessageBox.Show(
+                    "Failed to load destination places.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private async Task LoadPlaces()
+        {
+            var places =
+                await _apiService.GetAsync<List<PlaceDto>>(
+                    $"places/{_destinationId}");
+
+            dataGridViewPlaces.DataSource = places;
+
+            Log.Information(
+                "Loaded {Count} places for DestinationId {DestinationId}",
+                places?.Count ?? 0,
+                _destinationId);
+        }
+
+        private void AddWeatherButton()
+        {
+            if (dataGridViewPlaces.Columns["View Weather"] != null)
                 return;
 
-            if (dataGridViewPlaces.Columns[e.ColumnIndex].Name == "View Weather")
+            var btn = new DataGridViewButtonColumn
             {
-                PlaceDto place =
+                Name = "View Weather",
+                HeaderText = "View Weather",
+                Text = "View Weather",
+                UseColumnTextForButtonValue = true
+            };
+
+            dataGridViewPlaces.Columns.Add(btn);
+        }
+
+        private void dataGridViewPlaces_CellContentClick(
+            object sender,
+            DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.RowIndex < 0)
+                    return;
+
+                if (dataGridViewPlaces.Columns[e.ColumnIndex].Name != "View Weather")
+                    return;
+
+                var place =
                     (PlaceDto)dataGridViewPlaces
                     .Rows[e.RowIndex]
                     .DataBoundItem;
 
-                if (place == null) return;
+                if (place == null)
+                    return;
 
-                Weather form =
-                    new Weather(new SelectedPlaceContext
-                    {
-                        DestinationId = _destinationId,
-                        DestinationName = lblName.Text,
-                        PlaceId = place.Id,
-                        PlaceName = place.Name,
-                        Latitude = place.Latitude,
-                        Longitude = place.Longitude
-                    },_apiservice);
+                Log.Information(
+                    "Opening weather for PlaceId={PlaceId}, PlaceName={PlaceName}",
+                    place.Id,
+                    place.Name);
 
-                form.ShowDialog();
-            }
-        }
-        private async void DestinationDetails_Load(object sender, EventArgs e)
-        {
-            if (!dataGridViewPlaces.Columns.Contains("View Weather"))
-            {
-                DataGridViewButtonColumn btn =
-                    new DataGridViewButtonColumn();
+                using var weatherForm =
+                    new Weather(
+                        new SelectedPlaceContext
+                        {
+                            DestinationId = _destinationId,
+                            DestinationName = lblName.Text,
+                            PlaceId = place.Id,
+                            PlaceName = place.Name,
+                            Latitude = place.Latitude,
+                            Longitude = place.Longitude
+                        },
+                        _apiService);
 
-                btn.Name = "View Weather";
-                btn.HeaderText = "View Weather";
-                btn.Text = "View Weather";
-                btn.UseColumnTextForButtonValue = true;
-
-                dataGridViewPlaces.Columns.Add(btn);
-            }
-
-            await LoadPlaces();            
-        }
-        async Task LoadPlaces()
-        {
-            try
-            {
-                var places = await _apiservice.GetAsync<List<PlaceDto>>($"places/{_destinationId}");
-                dataGridViewPlaces.DataSource = places;
+                weatherForm.ShowDialog();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading places: " + ex.Message);
+                Log.Error(
+                    ex,
+                    "Failed to open weather form");
+
+                MessageBox.Show(
+                    "Unable to open weather information.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-       
     }
 }

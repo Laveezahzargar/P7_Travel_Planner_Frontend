@@ -18,8 +18,8 @@ namespace P7_Travel_Planner_Frontend.DTOs
 
         public decimal Cost { get; set; }
 
-        public DateTime StartTime { get; set; }
+        public TimeSpan StartTime { get; set; }
 
-        public DateTime EndTime { get; set; }
+        public TimeSpan EndTime { get; set; }
     }
 }

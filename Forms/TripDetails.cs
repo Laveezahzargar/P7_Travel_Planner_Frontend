@@ -1,5 +1,6 @@
 ﻿using P7_Travel_Planner_Frontend.DTOs;
 using P7_Travel_Planner_Frontend.Services;
+using Serilog;
 
 namespace P7_Travel_Planner_Frontend.Forms
 {
@@ -84,48 +85,90 @@ namespace P7_Travel_Planner_Frontend.Forms
         }
         private async void btnAddDay_Click(object sender, EventArgs e)
         {
-            if(dtpDate.Value <  DateTime.Parse(lblStartDate.Text) || dtpDate.Value > DateTime.Parse(lblEndDate.Text))
+            try
             {
-                MessageBox.Show("The date is outside the trip dates.", "Invalid Date", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                if (dtpDate.Value < DateTime.Parse(lblStartDate.Text) ||
+                    dtpDate.Value > DateTime.Parse(lblEndDate.Text))
+                {
+                    MessageBox.Show(
+                        "The date is outside the trip dates.",
+                        "Invalid Date",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
 
-            var day = new DayDto
-            {
-                Id = _selectedDayId,
-                TripId = _tripId,
-                Date = dtpDate.Value,
-                Destination = lblDestination.Text,
-                DayNumber = (int)numDayNumber.Value,
-                Notes = txtNotes.Text
-            };
+                    return;
+                }
 
-            if (_selectedDayId == 0)
-            {
-                // ADD
-                await _apiService.PostAsync($"trips/{_tripId}/days", day);
-            }
-            else
-            {
-                // UPDATE
-                await _apiService.PutAsync($"days/{_selectedDayId}", day);
-            }
+                var day = new DayDto
+                {
+                    Id = _selectedDayId,
+                    TripId = _tripId,
+                    Date = dtpDate.Value,
+                    Destination = lblDestination.Text,
+                    DayNumber = (int)numDayNumber.Value,
+                    Notes = txtNotes.Text
+                };
 
-            _selectedDayId = 0;
-            ClearForm();
-            await LoadDays(_tripId);
+                if (_selectedDayId == 0)
+                {
+                    await _apiService.PostAsync($"trips/{_tripId}/days", day);
+                    Log.Information("Day added to TripId {TripId}", _tripId);
+                }
+                else
+                {
+                    await _apiService.PutAsync($"days/{_selectedDayId}", day);
+                    Log.Information("Day {DayId} updated", _selectedDayId);
+                }
+
+                _selectedDayId = 0;
+                ClearForm();
+                await LoadDays(_tripId);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error saving day for TripId {TripId}", _tripId);
+
+                MessageBox.Show(
+                    "Unable to save day information.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
         private async void btnDeleteDay_Click(object sender, EventArgs e)
         {
-            if (dataGridViewDays.CurrentRow == null) return;
+            try
+            {
+                if (dataGridViewDays.CurrentRow == null)
+                    return;
 
-            var selected = (DayDto)dataGridViewDays.CurrentRow.DataBoundItem;
+                var result = MessageBox.Show(
+                            "Are you sure you want to delete this day?",
+                            "Confirm Delete",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
 
-            await _apiService.DeleteAsync(
-                $"days/{selected.Id}"
-            );
+                if (result != DialogResult.Yes)
+                    return;
 
-            await LoadDays(_tripId);
+                var selected = (DayDto)dataGridViewDays.CurrentRow.DataBoundItem;
+
+                await _apiService.DeleteAsync($"days/{selected.Id}");
+
+                Log.Information("Day {DayId} deleted", selected.Id);
+
+                await LoadDays(_tripId);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to delete day");
+
+                MessageBox.Show(
+                    "Unable to delete day.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
         private void ClearForm()
         {
@@ -135,38 +178,65 @@ namespace P7_Travel_Planner_Frontend.Forms
         }
         private async void dataGridViewDays_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
-
-            var day = (DayDto)dataGridViewDays.Rows[e.RowIndex].DataBoundItem;
-
-            if (dataGridViewDays.Columns[e.ColumnIndex].Name == "Edit")
+            try
             {
-                _selectedDayId = day.Id;
+                if (e.RowIndex < 0) return;
 
-                dtpDate.Value = day.Date;
-                numDayNumber.Value = day.DayNumber;
-                txtNotes.Text = day.Notes;
+                var day = (DayDto)dataGridViewDays.Rows[e.RowIndex].DataBoundItem;
+
+                if (dataGridViewDays.Columns[e.ColumnIndex].Name == "Edit")
+                {
+                    _selectedDayId = day.Id;
+
+                    dtpDate.Value = day.Date;
+                    numDayNumber.Value = day.DayNumber;
+                    txtNotes.Text = day.Notes;
+                }
+                else if (dataGridViewDays.Columns[e.ColumnIndex].Name == "Activities")
+                {
+                    using var activity = new Activity(_apiService, day.Id);
+                    activity.ShowDialog();
+                }
+                else if (dataGridViewDays.Columns[e.ColumnIndex].Name == "Delete")
+                {
+                    await _apiService.DeleteAsync($"days/{day.Id}");
+
+                    Log.Information("Day {DayId} deleted", day.Id);
+
+                    await LoadDays(_tripId);
+                }
             }
-            else if (dataGridViewDays.Columns[e.ColumnIndex].Name == "Activities")
+            catch (Exception ex)
             {
-                Activity activity = new Activity(_apiService, day.Id);
+                Log.Error(ex, "Error processing grid action");
 
-                activity.ShowDialog();
-            }
-            else if (dataGridViewDays.Columns[e.ColumnIndex].Name == "Delete")
-            {
-                await _apiService.DeleteAsync($"days/{day.Id}");
-                await LoadDays(_tripId);
+                MessageBox.Show(
+                    "Operation failed.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
         private async void TripDetails_Load(object sender, EventArgs e)
         {
-           
-            await LoadTripInfo();
-            await LoadDays(_tripId);
+            try
+            {
+                await LoadTripInfo();
+                await LoadDays(_tripId);
 
-            dtpDate.Value = DateTime.Parse(lblStartDate.Text);
+                dtpDate.Value = DateTime.Parse(lblStartDate.Text);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to load trip details for TripId {TripId}", _tripId);
+
+                MessageBox.Show(
+                    "Failed to load trip information.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
     }
 }

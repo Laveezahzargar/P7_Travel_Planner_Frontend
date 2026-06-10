@@ -1,57 +1,65 @@
 ﻿using P7_Travel_Planner_Frontend.DTOs;
 using P7_Travel_Planner_Frontend.Services;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using Serilog;
 
 namespace P7_Travel_Planner_Frontend.Forms
 {
     public partial class Weather : Form
     {
         private readonly ApiService _apiService;
+        private readonly SelectedPlaceContext _context;
+
         public Weather(SelectedPlaceContext context, ApiService apiService)
         {
             InitializeComponent();
 
-            lblDestination.Text = context.DestinationName;
-            lblPlace.Text = context.PlaceName;
-     
+            _context = context;
             _apiService = apiService;
 
-            LoadWeather(context);
+            lblDestination.Text = context.DestinationName;
+            lblPlace.Text = context.PlaceName;
         }
 
-        private async Task LoadWeather(SelectedPlaceContext context)
+        private async void Weather_Load(object sender, EventArgs e)
         {
             try
             {
+                Log.Information(
+                    "Loading weather for DestinationId {DestinationId}",
+                    _context.DestinationId);
+
                 var weather = await _apiService.GetAsync<WeatherDto>(
-                    $"weather/{context.DestinationId}"
-                );
+                    $"weather/{_context.DestinationId}");
 
                 if (weather != null)
                 {
-                    lblTemperature.Text = weather.Temperature + " °C";
+                    lblTemperature.Text = $"{weather.Temperature} °C";
                     lblCondition.Text = weather.Condition;
-                    lblHumidity.Text = weather.Humidity + " %";
-                    lblWind.Text = weather.WindSpeed + " km/h";
+                    lblHumidity.Text = $"{weather.Humidity} %";
+                    lblWind.Text = $"{weather.WindSpeed} km/h";
                 }
 
                 var forecast = await _apiService.GetAsync<List<WeatherDto>>(
-                    $"weather/forecast/{context.DestinationId}"
-                );
+                    $"weather/forecast/{_context.DestinationId}");
 
                 dataGridViewForecast.DataSource = forecast;
+
+                Log.Information(
+                    "Weather loaded successfully for DestinationId {DestinationId}",
+                    _context.DestinationId);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Weather error: " + ex.Message);
+                Log.Error(
+                    ex,
+                    "Failed to load weather for DestinationId {DestinationId}",
+                    _context.DestinationId);
+
+                MessageBox.Show(
+                    "Unable to load weather information.",
+                    "Weather Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
     }

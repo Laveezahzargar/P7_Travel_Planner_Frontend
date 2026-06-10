@@ -135,6 +135,7 @@
             txtPassword.Name = "txtPassword";
             txtPassword.Size = new Size(312, 27);
             txtPassword.TabIndex = 11;
+            txtPassword.UseSystemPasswordChar = true;
             // 
             // txtConfirmPassword
             // 
@@ -142,6 +143,7 @@
             txtConfirmPassword.Name = "txtConfirmPassword";
             txtConfirmPassword.Size = new Size(312, 27);
             txtConfirmPassword.TabIndex = 12;
+            txtConfirmPassword.UseSystemPasswordChar = true;
             // 
             // label7
             // 
@@ -161,7 +163,7 @@
             linkLogin.TabIndex = 14;
             linkLogin.TabStop = true;
             linkLogin.Text = "Login";
-            linkLogin.LinkClicked += this.linkLogin_LinkClicked;
+            linkLogin.LinkClicked += linkLogin_LinkClicked;
             // 
             // Register
             // 

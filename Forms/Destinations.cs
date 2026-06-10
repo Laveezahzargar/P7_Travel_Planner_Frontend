@@ -1,6 +1,6 @@
 ﻿using P7_Travel_Planner_Frontend.DTOs;
 using P7_Travel_Planner_Frontend.Services;
-using P7_Travel_Planner_Frontend.DTOs;
+using Serilog;
 
 namespace P7_Travel_Planner_Frontend.Forms
 {
@@ -8,6 +8,7 @@ namespace P7_Travel_Planner_Frontend.Forms
     {
         private readonly ApiService _apiService;
         private List<DestinationDto> _destinations = new();
+
         public Destinations()
         {
             InitializeComponent();
@@ -16,68 +17,92 @@ namespace P7_Travel_Planner_Frontend.Forms
 
         private async void Destinations_Load(object sender, EventArgs e)
         {
+            try
+            {
+                await LoadDestinations();
+
+                Log.Information("Destinations form loaded");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to load destinations");
+
+                MessageBox.Show(
+                    "Failed to load destinations.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private async Task LoadDestinations()
+        {
             var response =
                 await _apiService.GetAsync<PagedResponseDto<DestinationDto>>(
                     "destinations?page=1&pageSize=100");
 
             _destinations = response?.Data ?? new List<DestinationDto>();
 
+            dataGridViewDestinations.DataSource = null;
             dataGridViewDestinations.DataSource = _destinations;
 
-            if (!dataGridViewDestinations.Columns.Contains("View"))
-            {
-                DataGridViewButtonColumn btn =
-                    new DataGridViewButtonColumn();
-
-                btn.Name = "View";
-                btn.HeaderText = "View Details";
-                btn.Text = "View";
-                btn.UseColumnTextForButtonValue = true;
-
-                dataGridViewDestinations.Columns.Add(btn);
-            }
-
-            // Move button to last column
-            dataGridViewDestinations.Columns["View"].DisplayIndex =
-                dataGridViewDestinations.Columns.Count - 1;
+            AddViewButton();
 
             dataGridViewDestinations.AutoSizeColumnsMode =
                 DataGridViewAutoSizeColumnsMode.Fill;
 
+            Log.Information(
+                "Loaded {Count} destinations",
+                _destinations.Count);
         }
 
         private async void btnSearch_Click(object sender, EventArgs e)
         {
-            string keyword = txtSearch.Text.Trim().ToLower();
-
-            if (string.IsNullOrWhiteSpace(keyword))
-            {
-                dataGridViewDestinations.DataSource = null;
-                dataGridViewDestinations.DataSource = _destinations;
-                return;
-            }
-
             try
             {
+                string keyword =
+                    txtSearch.Text.Trim().ToLower();
+
+                if (string.IsNullOrWhiteSpace(keyword))
+                {
+                    dataGridViewDestinations.DataSource = null;
+                    dataGridViewDestinations.DataSource = _destinations;
+                    return;
+                }
 
                 var response =
-           await _apiService.GetAsync<PagedResponseDto<DestinationDto>>(
-               $"destinations?search={keyword}&page=1&pageSize=100");
+                    await _apiService.GetAsync<PagedResponseDto<DestinationDto>>(
+                        $"destinations?search={keyword}&page=1&pageSize=100");
 
-                var results = response?.Data ?? new List<DestinationDto>();
+                var results =
+                    response?.Data ?? new List<DestinationDto>();
 
                 dataGridViewDestinations.DataSource = null;
                 dataGridViewDestinations.DataSource = results;
 
                 AddViewButton();
+
+                Log.Information(
+                    "Destination search '{Keyword}' returned {Count} results",
+                    keyword,
+                    results.Count);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Search failed.\n{ex.Message}", "Error");
+                Log.Error(ex,
+                    "Destination search failed");
+
+                MessageBox.Show(
+                    "Search failed.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
-        private void txtSearch_KeyDown(object sender, KeyEventArgs e)
+        private void txtSearch_KeyDown(
+            object sender,
+            KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
@@ -85,30 +110,55 @@ namespace P7_Travel_Planner_Frontend.Forms
             }
         }
 
-        private void btnClear_Click(object sender, EventArgs e)
+        private void btnClear_Click(
+            object sender,
+            EventArgs e)
         {
             txtSearch.Clear();
 
             dataGridViewDestinations.DataSource = null;
             dataGridViewDestinations.DataSource = _destinations;
+
+            Log.Information("Destination search cleared");
         }
 
-        private void dataGridViewDestinations_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void dataGridViewDestinations_CellContentClick(
+            object sender,
+            DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0)
-                return;
-
-            if (dataGridViewDestinations.Columns[e.ColumnIndex].Name == "View")
+            try
             {
-                DestinationDto destination =
+                if (e.RowIndex < 0)
+                    return;
+
+                if (dataGridViewDestinations.Columns[e.ColumnIndex].Name != "View")
+                    return;
+
+                var destination =
                     (DestinationDto)dataGridViewDestinations
                     .Rows[e.RowIndex]
                     .DataBoundItem;
 
-                DestinationDetails details =
-                 new DestinationDetails(destination,this._apiService);
+                Log.Information(
+                    "Viewing destination {DestinationId} - {DestinationName}",
+                    destination.Id,
+                    destination.Name);
+
+                using var details =
+                    new DestinationDetails(destination, _apiService);
 
                 details.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex,
+                    "Failed to open destination details");
+
+                MessageBox.Show(
+                    "Unable to open destination details.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -119,7 +169,7 @@ namespace P7_Travel_Planner_Frontend.Forms
                 dataGridViewDestinations.Columns.Remove("View");
             }
 
-            DataGridViewButtonColumn btn = new DataGridViewButtonColumn
+            var btn = new DataGridViewButtonColumn
             {
                 Name = "View",
                 HeaderText = "View Details",
@@ -129,8 +179,8 @@ namespace P7_Travel_Planner_Frontend.Forms
 
             dataGridViewDestinations.Columns.Add(btn);
 
-            // Force it to be last
-            btn.DisplayIndex = dataGridViewDestinations.Columns.Count - 1;
+            btn.DisplayIndex =
+                dataGridViewDestinations.Columns.Count - 1;
         }
     }
 }

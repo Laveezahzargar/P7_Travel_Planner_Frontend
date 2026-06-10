@@ -1,8 +1,10 @@
 ﻿using P7_Travel_Planner_Frontend.DTOs;
 using P7_Travel_Planner_Frontend.Helpers;
 using P7_Travel_Planner_Frontend.Services;
-using System.Text.RegularExpressions;
 using System.Net.Http.Json;
+using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Serilog;
 
 namespace P7_Travel_Planner_Frontend.Forms
 {
@@ -17,75 +19,112 @@ namespace P7_Travel_Planner_Frontend.Forms
 
         private async void btnLogin_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtEmail.Text) || string.IsNullOrWhiteSpace(txtPassword.Text))
+            try
             {
-                MessageBox.Show("Please fill in all fields.", "Input Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            // Email validation
-            if (!Regex.IsMatch(txtEmail.Text,
-                @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-            {
-                MessageBox.Show("Please enter a valid email address.",
-                    "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            var dto = new LoginDto
-            {
-                Email = txtEmail.Text.Trim(),
-                Password = txtPassword.Text
-            };
-
-            var response = await _apiService.PostAsync(
-                "users/login",
-                dto);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result =
-                    await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-
-                if (result == null)
+                if (string.IsNullOrWhiteSpace(txtEmail.Text) || string.IsNullOrWhiteSpace(txtPassword.Text))
                 {
-                    MessageBox.Show("Invalid server response.");
+                    MessageBox.Show("Please fill in all fields.", "Input Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
-                SessionManager.Token = result!.Token;
-                SessionManager.UserId = result.Id;
-                SessionManager.Role = result.Role.ToString();
-                SessionManager.Username = result.Username;
+                // Email validation
+                if (!Regex.IsMatch(txtEmail.Text,
+                    @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                {
+                    MessageBox.Show("Please enter a valid email address.",
+                        "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
-                _apiService.SetToken(result.Token);
+                btnLogin.Enabled = false;
+                btnLogin.Text = "Logging in...";
+                Cursor = Cursors.WaitCursor;
 
-                MessageBox.Show("Login Successful!");
+                var dto = new LoginDto
+                {
+                    Email = txtEmail.Text.Trim(),
+                    Password = txtPassword.Text
+                };
 
-                this.Hide();
+                Log.Information(
+                "Login attempt for Email {Email}",
+                dto.Email);
 
-                Dashboard dashboard = new Dashboard();
-                dashboard.ShowDialog();
+                var response = await _apiService.PostAsync(
+                    "users/login",
+                    dto);
 
-                this.Show();
+                if (response.IsSuccessStatusCode)
+                {
+                    var result =
+                        await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+
+                    if (result == null)
+                    {
+                        Log.Warning(
+                    "Login returned null response for Email {Email}",
+                    dto.Email);
+                        MessageBox.Show("Invalid server response.");
+                        return;
+                    }
+
+                    SessionManager.Token = result!.Token;
+                    SessionManager.UserId = result.Id;
+                    SessionManager.Role = result.Role.ToString();
+                    SessionManager.Username = result.Username;
+
+                    _apiService.SetToken(result.Token);
+
+                    Log.Information(
+                "User logged in successfully. UserId={UserId}, Username={Username}",
+                result.Id,
+                result.Username);
+
+                    MessageBox.Show("Login Successful!");
+
+                    this.Hide();
+
+                    Dashboard dashboard = new Dashboard();
+                    dashboard.ShowDialog();
+
+                    this.Show();
 
 
+                }
+                else
+                {
+                    MessageBox.Show(
+                        await response.Content.ReadAsStringAsync(),
+                        "Login Failed",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
             }
-            else
+            catch (Exception ex)
             {
+                Log.Error(
+                    ex,
+                    "Unexpected error during login");
+
                 MessageBox.Show(
-                    await response.Content.ReadAsStringAsync(),
-                    "Login Failed",
+                    "An unexpected error occurred while logging in.",
+                    "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
-
-
+            finally
+            {
+                btnLogin.Enabled = true;
+                btnLogin.Text = "Login";
+                Cursor = Cursors.Default;
+            }
         }
 
         private void linkRegister_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
+            Log.Information("Navigating to Register form");
+
             Register register = new Register();
             register.Show();
 

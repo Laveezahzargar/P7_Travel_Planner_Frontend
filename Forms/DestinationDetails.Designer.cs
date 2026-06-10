@@ -60,15 +60,6 @@
             label2.TabIndex = 1;
             label2.Text = "Country";
             // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Location = new Point(555, 183);
-            label3.Name = "label3";
-            label3.Size = new Size(85, 20);
-            label3.TabIndex = 2;
-            label3.Text = "Description";
-            label3.Click += label3_Click;
             // 
             // lblName
             // 
@@ -114,7 +105,6 @@
             dataGridViewPlaces.RowHeadersWidth = 51;
             dataGridViewPlaces.Size = new Size(1082, 444);
             dataGridViewPlaces.TabIndex = 7;
-            dataGridViewPlaces.CellContentClick += dataGridViewPlaces_CellContentClick_1;
             // 
             // label6
             // 

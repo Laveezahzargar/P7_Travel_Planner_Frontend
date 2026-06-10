@@ -1,13 +1,15 @@
 using P7_Travel_Planner_Frontend.DTOs;
-using P7_Travel_Planner_Frontend.Services;
-using System.Text.RegularExpressions;
 using P7_Travel_Planner_Frontend.Forms;
+using P7_Travel_Planner_Frontend.Services;
+using Serilog;
+using System.Text.RegularExpressions;
 
 namespace P7_Travel_Planner_Frontend
 {
     public partial class Register : Form
     {
         private readonly ApiService _apiService;
+
         public Register()
         {
             InitializeComponent();
@@ -21,6 +23,10 @@ namespace P7_Travel_Planner_Frontend
                 if (!ValidateInputs())
                     return;
 
+                btnRegister.Enabled = false;
+                btnRegister.Text = "Registering...";
+                Cursor = Cursors.WaitCursor;
+
                 var dto = new RegisterDto
                 {
                     FullName = txtFullName.Text.Trim(),
@@ -29,29 +35,70 @@ namespace P7_Travel_Planner_Frontend
                     Password = txtPassword.Text
                 };
 
+                Log.Information(
+                    "Registration attempt for Username {Username}",
+                    dto.Username);
+
                 var response = await _apiService.PostAsync(
-                           "users/register",
-                           dto);
+                    "users/register",
+                    dto);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    MessageBox.Show("Registration successful!");
+                    Log.Information(
+                        "User registered successfully: {Username}",
+                        dto.Username);
 
-                    this.Hide();
-                    new Login().ShowDialog();
+                    MessageBox.Show(
+                        "Registration successful!",
+                        "Success",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    Hide();
+
+                    using var login = new Login();
+                    login.ShowDialog();
+
+                    Close();
                 }
                 else
                 {
+                    var errorMessage =
+                        await response.Content.ReadAsStringAsync();
+
+                    Log.Warning(
+                        "Registration failed for Username {Username}. Response: {Response}",
+                        dto.Username,
+                        errorMessage);
+
                     MessageBox.Show(
-                        await response.Content.ReadAsStringAsync());
+                        errorMessage,
+                        "Registration Failed",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
-            }
+                Log.Error(
+                    ex,
+                    "Unexpected error during registration");
 
+                MessageBox.Show(
+                    "An unexpected error occurred while registering.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnRegister.Enabled = true;
+                btnRegister.Text = "Register";
+                Cursor = Cursors.Default;
+            }
         }
+
         private bool ValidateInputs()
         {
             if (string.IsNullOrWhiteSpace(txtFullName.Text) ||
@@ -60,38 +107,59 @@ namespace P7_Travel_Planner_Frontend
                 string.IsNullOrWhiteSpace(txtPassword.Text) ||
                 string.IsNullOrWhiteSpace(txtConfirmPassword.Text))
             {
-                MessageBox.Show("Please fill in all fields.", "Input Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Please fill in all fields.",
+                    "Input Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 return false;
             }
 
-            if (txtUsername.Text.Length < 3 || txtFullName.Text.Length < 3)
+            if (txtUsername.Text.Length < 3 ||
+                txtFullName.Text.Length < 3)
             {
-                MessageBox.Show("Username and full name must be at least 3 characters long.",
-                    "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Username and full name must be at least 3 characters long.",
+                    "Input Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 return false;
             }
 
-            // Email validation
-            if (!Regex.IsMatch(txtEmail.Text,
+            if (!Regex.IsMatch(
+                txtEmail.Text,
                 @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             {
-                MessageBox.Show("Please enter a valid email address.",
-                    "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Please enter a valid email address.",
+                    "Input Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 return false;
             }
 
             if (txtPassword.Text.Length < 6)
             {
-                MessageBox.Show("Password must be at least 6 characters long.",
-                    "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Password must be at least 6 characters long.",
+                    "Input Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 return false;
             }
 
             if (txtPassword.Text != txtConfirmPassword.Text)
             {
-                MessageBox.Show("Passwords do not match.",
-                    "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Passwords do not match.",
+                    "Input Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 return false;
             }
 
@@ -99,13 +167,15 @@ namespace P7_Travel_Planner_Frontend
         }
 
         private void linkLogin_LinkClicked(
-        object sender,
-        LinkLabelLinkClickedEventArgs e)
+            object sender,
+            LinkLabelLinkClickedEventArgs e)
         {
-            Login login = new Login();
+            Log.Information("Navigating to Login form");
+
+            var login = new Login();
             login.Show();
 
-            this.Hide();
+            Hide();
         }
     }
 }
