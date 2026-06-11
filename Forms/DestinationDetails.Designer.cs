@@ -39,6 +39,7 @@
             label6 = new Label();
             label7 = new Label();
             label5 = new Label();
+            label8 = new Label();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlaces).BeginInit();
             SuspendLayout();
             // 
@@ -60,6 +61,12 @@
             label2.TabIndex = 1;
             label2.Text = "Country";
             // 
+            // label3
+            // 
+            label3.Location = new Point(0, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(100, 23);
+            label3.TabIndex = 11;
             // 
             // lblName
             // 
@@ -105,6 +112,7 @@
             dataGridViewPlaces.RowHeadersWidth = 51;
             dataGridViewPlaces.Size = new Size(1082, 444);
             dataGridViewPlaces.TabIndex = 7;
+            dataGridViewPlaces.CellContentClick += dataGridViewPlaces_CellContentClick;
             // 
             // label6
             // 
@@ -133,11 +141,21 @@
             label5.TabIndex = 8;
             label5.Text = "1 .";
             // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(555, 183);
+            label8.Name = "label8";
+            label8.Size = new Size(85, 20);
+            label8.TabIndex = 12;
+            label8.Text = "Description";
+            // 
             // DestinationDetails
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1445, 739);
+            Controls.Add(label8);
             Controls.Add(label7);
             Controls.Add(label6);
             Controls.Add(label5);
@@ -170,5 +188,6 @@
         private Label label6;
         private Label label7;
         private Label label5;
+        private Label label8;
     }
 }

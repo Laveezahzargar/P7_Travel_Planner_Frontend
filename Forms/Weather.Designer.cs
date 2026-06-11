@@ -34,21 +34,21 @@
             label4 = new Label();
             lblPlace = new Label();
             grpCurrentWeather = new GroupBox();
+            label13 = new Label();
+            label12 = new Label();
+            label11 = new Label();
+            label10 = new Label();
+            label9 = new Label();
             lblWind = new Label();
+            label8 = new Label();
             lblHumidity = new Label();
+            label7 = new Label();
             lblCondition = new Label();
+            label6 = new Label();
             lblTemperature = new Label();
             dataGridViewForecast = new DataGridView();
             label3 = new Label();
             label5 = new Label();
-            label6 = new Label();
-            label7 = new Label();
-            label8 = new Label();
-            label9 = new Label();
-            label10 = new Label();
-            label11 = new Label();
-            label12 = new Label();
-            label13 = new Label();
             grpCurrentWeather.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewForecast).BeginInit();
             SuspendLayout();
@@ -119,6 +119,51 @@
             grpCurrentWeather.TabStop = false;
             grpCurrentWeather.Text = "groupBox1";
             // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new Point(68, 173);
+            label13.Name = "label13";
+            label13.Size = new Size(30, 20);
+            label13.TabIndex = 16;
+            label13.Text = "🌬️";
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(68, 136);
+            label12.Name = "label12";
+            label12.Size = new Size(30, 20);
+            label12.TabIndex = 15;
+            label12.Text = "💧";
+            // 
+            // label11
+            // 
+            label11.AutoSize = true;
+            label11.Location = new Point(68, 96);
+            label11.Name = "label11";
+            label11.Size = new Size(30, 20);
+            label11.TabIndex = 14;
+            label11.Text = "☁️";
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(68, 54);
+            label10.Name = "label10";
+            label10.Size = new Size(30, 20);
+            label10.TabIndex = 13;
+            label10.Text = "🌡️";
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(207, 173);
+            label9.Name = "label9";
+            label9.Size = new Size(44, 20);
+            label9.TabIndex = 12;
+            label9.Text = "Wind";
+            // 
             // lblWind
             // 
             lblWind.AutoSize = true;
@@ -127,6 +172,15 @@
             lblWind.Size = new Size(50, 20);
             lblWind.TabIndex = 3;
             lblWind.Text = "label7";
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(207, 136);
+            label8.Name = "label8";
+            label8.Size = new Size(70, 20);
+            label8.TabIndex = 11;
+            label8.Text = "Humidity";
             // 
             // lblHumidity
             // 
@@ -137,6 +191,15 @@
             lblHumidity.TabIndex = 2;
             lblHumidity.Text = "label6";
             // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(207, 96);
+            label7.Name = "label7";
+            label7.Size = new Size(74, 20);
+            label7.TabIndex = 10;
+            label7.Text = "Condition";
+            // 
             // lblCondition
             // 
             lblCondition.AutoSize = true;
@@ -145,6 +208,15 @@
             lblCondition.Size = new Size(50, 20);
             lblCondition.TabIndex = 1;
             lblCondition.Text = "label5";
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(207, 54);
+            label6.Name = "label6";
+            label6.Size = new Size(94, 20);
+            label6.TabIndex = 9;
+            label6.Text = "Temperature";
             // 
             // lblTemperature
             // 
@@ -182,78 +254,6 @@
             label5.TabIndex = 8;
             label5.Text = "2 .";
             // 
-            // label6
-            // 
-            label6.AutoSize = true;
-            label6.Location = new Point(207, 54);
-            label6.Name = "label6";
-            label6.Size = new Size(94, 20);
-            label6.TabIndex = 9;
-            label6.Text = "Temperature";
-            // 
-            // label7
-            // 
-            label7.AutoSize = true;
-            label7.Location = new Point(207, 96);
-            label7.Name = "label7";
-            label7.Size = new Size(74, 20);
-            label7.TabIndex = 10;
-            label7.Text = "Condition";
-            // 
-            // label8
-            // 
-            label8.AutoSize = true;
-            label8.Location = new Point(207, 136);
-            label8.Name = "label8";
-            label8.Size = new Size(70, 20);
-            label8.TabIndex = 11;
-            label8.Text = "Humidity";
-            // 
-            // label9
-            // 
-            label9.AutoSize = true;
-            label9.Location = new Point(207, 173);
-            label9.Name = "label9";
-            label9.Size = new Size(44, 20);
-            label9.TabIndex = 12;
-            label9.Text = "Wind";
-            // 
-            // label10
-            // 
-            label10.AutoSize = true;
-            label10.Location = new Point(68, 54);
-            label10.Name = "label10";
-            label10.Size = new Size(30, 20);
-            label10.TabIndex = 13;
-            label10.Text = "🌡️";
-            // 
-            // label11
-            // 
-            label11.AutoSize = true;
-            label11.Location = new Point(68, 96);
-            label11.Name = "label11";
-            label11.Size = new Size(30, 20);
-            label11.TabIndex = 14;
-            label11.Text = "☁️";
-            // 
-            // label12
-            // 
-            label12.AutoSize = true;
-            label12.Location = new Point(68, 136);
-            label12.Name = "label12";
-            label12.Size = new Size(30, 20);
-            label12.TabIndex = 15;
-            label12.Text = "💧";
-            // 
-            // label13
-            // 
-            label13.AutoSize = true;
-            label13.Location = new Point(68, 173);
-            label13.Name = "label13";
-            label13.Size = new Size(30, 20);
-            label13.TabIndex = 16;
-            label13.Text = "🌬️";
-            // 
             // Weather
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -271,6 +271,7 @@
             Font = new Font("Segoe UI Emoji", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             Name = "Weather";
             Text = "Weather";
+            Load += Weather_Load;
             grpCurrentWeather.ResumeLayout(false);
             grpCurrentWeather.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewForecast).EndInit();

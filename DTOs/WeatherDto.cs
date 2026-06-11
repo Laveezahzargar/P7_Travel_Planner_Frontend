@@ -11,7 +11,7 @@ namespace P7_Travel_Planner_Frontend.DTOs
         public DateTime Date { get; set; }
         public double Temperature { get; set; }
         public string Condition { get; set; }
-        public int Humidity { get; set; }
-        public string WindSpeed { get; set; }
+        public double Humidity { get; set; }
+        public double WindSpeed { get; set; }
     }
 }
